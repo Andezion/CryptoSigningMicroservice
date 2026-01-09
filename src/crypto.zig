@@ -57,18 +57,20 @@ pub const CryptoCore = struct {
     fn generateEd25519KeyPair(self: *CryptoCore) !KeyPair {
         const Ed25519 = std.crypto.sign.Ed25519;
 
-        var seed: [Ed25519.seed_length]u8 = undefined;
+        var seed: [32]u8 = undefined;
         std.crypto.random.bytes(&seed);
 
-        const key_pair = try Ed25519.KeyPair.create(seed);
+        const secret = Ed25519.SecretKey.fromBytes(seed);
+        const public = try secret.publicKey();
 
+        // Zero out the seed
         @memset(&seed, 0);
 
         const public_key = try self.allocator.alloc(u8, Ed25519.public_length);
         const secret_key = try self.allocator.alloc(u8, Ed25519.secret_length);
 
-        @memcpy(public_key, &key_pair.public_key.bytes);
-        @memcpy(secret_key, &key_pair.secret_key.bytes);
+        @memcpy(public_key, &public.bytes);
+        @memcpy(secret_key, &secret.bytes);
 
         return KeyPair{
             .algorithm = .ed25519,

@@ -10,10 +10,10 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var cfg = config.Config.loadFromFile(allocator, "config.json") catch |err| {
+    var cfg = config.Config.loadFromFile(allocator, "config.json") catch |err| blk: {
         if (err == error.FileNotFound) {
             std.log.warn("config.json not found, using defaults", .{});
-            try config.Config.default(allocator);
+            break :blk try config.Config.default(allocator);
         } else {
             return err;
         }

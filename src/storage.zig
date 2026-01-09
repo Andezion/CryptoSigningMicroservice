@@ -123,13 +123,13 @@ pub const KeyStorage = struct {
         var stored = entry.value;
         stored.deinit();
 
-        var path_buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var path_buf: [std.fs.max_path_bytes]u8 = undefined;
         const path = try std.fmt.bufPrint(&path_buf, "{s}/{s}.key", .{ self.keys_dir, id });
         try std.fs.cwd().deleteFile(path);
     }
 
     fn saveKeyToDisk(self: *KeyStorage, id: []const u8, stored: *const StoredKey) !void {
-        var path_buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var path_buf: [std.fs.max_path_bytes]u8 = undefined;
         const path = try std.fmt.bufPrint(&path_buf, "{s}/{s}.key", .{ self.keys_dir, id });
 
         const file = try std.fs.cwd().createFile(path, .{});
@@ -175,7 +175,7 @@ pub const KeyStorage = struct {
     }
 
     fn loadKeyFromFile(self: *KeyStorage, filename: []const u8) !void {
-        var path_buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var path_buf: [std.fs.max_path_bytes]u8 = undefined;
         const path = try std.fmt.bufPrint(&path_buf, "{s}/{s}", .{ self.keys_dir, filename });
 
         const file = try std.fs.cwd().openFile(path, .{});
