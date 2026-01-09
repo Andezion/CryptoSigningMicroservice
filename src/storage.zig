@@ -27,7 +27,6 @@ pub const KeyStorage = struct {
     };
 
     pub fn init(allocator: std.mem.Allocator, keys_dir: []const u8) !KeyStorage {
-        // Create keys directory if it doesn't exist
         std.fs.cwd().makePath(keys_dir) catch |err| {
             if (err != error.PathAlreadyExists) return err;
         };
@@ -38,7 +37,6 @@ pub const KeyStorage = struct {
             .keys = std.StringHashMap(StoredKey).init(allocator),
         };
 
-        // Load existing keys
         try storage.loadKeys();
 
         return storage;
@@ -53,21 +51,17 @@ pub const KeyStorage = struct {
         self.keys.deinit();
     }
 
-    /// Store a keypair with a given ID
     pub fn storeKey(self: *KeyStorage, id: []const u8, keypair: *crypto.KeyPair) !void {
-        // Create base64 encoded public key
         const encoder = std.base64.standard.Encoder;
         const public_key_b64_len = encoder.calcSize(keypair.public_key.len);
         const public_key_b64 = try self.allocator.alloc(u8, public_key_b64_len);
         errdefer self.allocator.free(public_key_b64);
         _ = encoder.encode(public_key_b64, keypair.public_key);
 
-        // Copy secret key
         const secret_key = try self.allocator.alloc(u8, keypair.secret_key.len);
         errdefer self.allocator.free(secret_key);
         @memcpy(secret_key, keypair.secret_key);
 
-        // Create metadata
         const id_copy = try self.allocator.dupe(u8, id);
         errdefer self.allocator.free(id_copy);
 
@@ -84,20 +78,16 @@ pub const KeyStorage = struct {
             .allocator = self.allocator,
         };
 
-        // Store in memory
         try self.keys.put(id_copy, stored_key);
 
-        // Persist to disk
         try self.saveKeyToDisk(id, &stored_key);
     }
 
-    /// Get secret key for signing
     pub fn getSecretKey(self: *KeyStorage, id: []const u8) ![]const u8 {
         const stored = self.keys.get(id) orelse return error.KeyNotFound;
         return stored.secret_key;
     }
 
-    /// Get public key
     pub fn getPublicKey(self: *KeyStorage, id: []const u8) ![]const u8 {
         const stored = self.keys.get(id) orelse return error.KeyNotFound;
 
@@ -110,13 +100,11 @@ pub const KeyStorage = struct {
         return public_key;
     }
 
-    /// Get algorithm for a key
     pub fn getAlgorithm(self: *KeyStorage, id: []const u8) !crypto.Algorithm {
         const stored = self.keys.get(id) orelse return error.KeyNotFound;
         return stored.metadata.algorithm;
     }
 
-    /// List all key IDs
     pub fn listKeys(self: *KeyStorage, allocator: std.mem.Allocator) ![]KeyMetadata {
         var result = try allocator.alloc(KeyMetadata, self.keys.count());
         var i: usize = 0;
@@ -130,13 +118,11 @@ pub const KeyStorage = struct {
         return result;
     }
 
-    /// Delete a key
     pub fn deleteKey(self: *KeyStorage, id: []const u8) !void {
         const entry = self.keys.fetchRemove(id) orelse return error.KeyNotFound;
         var stored = entry.value;
         stored.deinit();
 
-        // Delete from disk
         var path_buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         const path = try std.fmt.bufPrint(&path_buf, "{s}/{s}.key", .{ self.keys_dir, id });
         try std.fs.cwd().deleteFile(path);
@@ -149,11 +135,9 @@ pub const KeyStorage = struct {
         const file = try std.fs.cwd().createFile(path, .{});
         defer file.close();
 
-        // Write JSON format
         var buf_writer = std.io.bufferedWriter(file.writer());
         const writer = buf_writer.writer();
 
-        // Encode secret key to base64
         const encoder = std.base64.standard.Encoder;
         const secret_key_b64_len = encoder.calcSize(stored.secret_key.len);
         const secret_key_b64 = try self.allocator.alloc(u8, secret_key_b64_len);
@@ -216,7 +200,6 @@ pub const KeyStorage = struct {
 
         const data = parsed.value;
 
-        // Decode keys from base64
         const decoder = std.base64.standard.Decoder;
         const public_key_b64 = try self.allocator.alloc(u8, data.public_key.len);
         errdefer self.allocator.free(public_key_b64);
