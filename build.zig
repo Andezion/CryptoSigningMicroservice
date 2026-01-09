@@ -6,10 +6,13 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "cryptosign",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
     });
-    exe.root_module.root_source_file = b.path("src/main.zig");
-    exe.root_module.resolved_target = target;
-    exe.root_module.optimize = optimize;
+    // exe.root_module.root_source_file = b.path("src/main.zig");
+    // exe.root_module.resolved_target = target;
+    // exe.root_module.optimize = optimize;
 
     b.installArtifact(exe);
 
