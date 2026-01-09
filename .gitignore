@@ -1,0 +1,11 @@
+zig-cache/
+zig-out/
+.zig-cache/
+*.swp
+*.swo
+*~
+.DS_Store
+keys/
+*.pem
+*.key
+config.json
