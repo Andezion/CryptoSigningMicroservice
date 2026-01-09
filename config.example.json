@@ -1,0 +1,18 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080
+  },
+  "storage": {
+    "keys_directory": "./keys",
+    "encryption_enabled": true
+  },
+  "algorithms": {
+    "default": "ed25519",
+    "supported": ["ed25519", "ecdsa-p256"]
+  },
+  "security": {
+    "max_payload_size": 1048576,
+    "rate_limit": 100
+  }
+}

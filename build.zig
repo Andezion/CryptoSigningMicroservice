@@ -23,7 +23,6 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the crypto signing service");
     run_step.dependOn(&run_cmd.step);
 
-    // Unit tests
     const unit_tests = b.addTest(.{});
     unit_tests.root_module.root_source_file = b.path("src/main.zig");
     unit_tests.root_module.target = target;
