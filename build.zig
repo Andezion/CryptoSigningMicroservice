@@ -4,8 +4,8 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable("cryptosign");
-    exe.root_src = b.path("src/main.zig");
+    const exe = b.addExecutable("cryptosign", b.path("src/main.zig"));
+
     exe.setTarget(target);
     exe.setOptimize(optimize);
 
