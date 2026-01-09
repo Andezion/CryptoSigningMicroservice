@@ -52,14 +52,11 @@ pub const HttpServer = struct {
 
         const request_data = buffer[0..bytes_read];
 
-        // Parse HTTP request
         const request = try self.parseRequest(request_data);
 
-        // Route to handler
         const response = try handler.handle(self.allocator, request);
         defer response.deinit(self.allocator);
 
-        // Send response
         try self.sendResponse(connection.stream, response);
     }
 
@@ -69,7 +66,6 @@ pub const HttpServer = struct {
         var lines = std.mem.splitScalar(u8, data, '\n');
         const first_line = lines.next() orelse return error.InvalidRequest;
 
-        // Parse request line: METHOD PATH HTTP/VERSION
         var parts = std.mem.splitScalar(u8, first_line, ' ');
         const method_str = parts.next() orelse return error.InvalidRequest;
         const path = parts.next() orelse return error.InvalidRequest;
@@ -83,7 +79,6 @@ pub const HttpServer = struct {
         else
             HttpMethod.GET;
 
-        // Find body (after empty line)
         var body: []const u8 = "";
         var found_empty = false;
         while (lines.next()) |line| {
@@ -119,16 +114,13 @@ pub const HttpServer = struct {
 
         var writer = stream.writer();
 
-        // Status line
         try writer.print("HTTP/1.1 {d} {s}\r\n", .{ response.status, status_text });
 
-        // Headers
         try writer.print("Content-Type: {s}\r\n", .{response.content_type});
         try writer.print("Content-Length: {d}\r\n", .{response.body.len});
         try writer.writeAll("Connection: close\r\n");
         try writer.writeAll("\r\n");
 
-        // Body
         try writer.writeAll(response.body);
     }
 };
