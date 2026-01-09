@@ -26,10 +26,8 @@ pub fn main() !void {
     std.log.info("  Port: {d}", .{cfg.server_port});
     std.log.info("  Keys directory: {s}", .{cfg.keys_directory});
 
-    // Initialize crypto core
     var crypto_core = crypto.CryptoCore.init(allocator);
 
-    // Initialize key storage
     var key_storage = try storage.KeyStorage.init(allocator, cfg.keys_directory);
     defer key_storage.deinit();
 
@@ -37,10 +35,8 @@ pub fn main() !void {
     defer allocator.free(keys);
     std.log.info("Loaded {d} existing keys", .{keys.len});
 
-    // Initialize API handler
     var api_handler = api.ApiHandler.init(allocator, &crypto_core, &key_storage);
 
-    // Create request handler wrapper
     const Handler = struct {
         handler: *api.ApiHandler,
 
@@ -54,11 +50,10 @@ pub fn main() !void {
         .handle = @ptrCast(&Handler.handle),
     };
 
-    // Start HTTP server
     var server = try http.HttpServer.init(allocator, cfg.server_host, cfg.server_port);
     defer server.deinit();
 
-    std.log.info("🔐 CryptoSign API ready!", .{});
+    std.log.info("CryptoSign API ready!", .{});
     std.log.info("Endpoints:", .{});
     std.log.info("  GET  /health", .{});
     std.log.info("  POST /api/keys/generate", .{});
