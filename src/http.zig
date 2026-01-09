@@ -116,20 +116,16 @@ pub const HttpServer = struct {
         var fbs = std.io.fixedBufferStream(&buffer);
         const writer = fbs.writer();
 
-        // Status line
         try writer.print("HTTP/1.1 {d} {s}\r\n", .{ response.status, status_text });
 
-        // Headers
         try writer.print("Content-Type: {s}\r\n", .{response.content_type});
         try writer.print("Content-Length: {d}\r\n", .{response.body.len});
         try writer.writeAll("Connection: close\r\n");
         try writer.writeAll("\r\n");
 
-        // Write headers to stream
         const header_data = fbs.getWritten();
         _ = try stream.writeAll(header_data);
 
-        // Write body to stream
         _ = try stream.writeAll(response.body);
     }
 };

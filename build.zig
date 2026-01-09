@@ -4,7 +4,6 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    // Create the root module
     const root_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -28,7 +27,6 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the crypto signing service");
     run_step.dependOn(&run_cmd.step);
 
-    // Create test module
     const test_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
