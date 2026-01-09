@@ -26,7 +26,6 @@ pub const KeyPair = struct {
 
     pub fn deinit(self: *KeyPair) void {
         self.allocator.free(self.public_key);
-        // Zero out secret key before freeing
         @memset(self.secret_key, 0);
         self.allocator.free(self.secret_key);
     }
@@ -48,7 +47,6 @@ pub const CryptoCore = struct {
         return .{ .allocator = allocator };
     }
 
-    /// Generate a new keypair for the specified algorithm
     pub fn generateKeyPair(self: *CryptoCore, algorithm: Algorithm) !KeyPair {
         return switch (algorithm) {
             .ed25519 => try self.generateEd25519KeyPair(),
@@ -64,7 +62,6 @@ pub const CryptoCore = struct {
 
         const key_pair = try Ed25519.KeyPair.create(seed);
 
-        // Zero out the seed
         @memset(&seed, 0);
 
         const public_key = try self.allocator.alloc(u8, Ed25519.public_length);
@@ -87,14 +84,12 @@ pub const CryptoCore = struct {
 
         const key_pair = try P256.KeyPair.create(null);
 
-        const public_key = try self.allocator.alloc(u8, 65); // Uncompressed point
+        const public_key = try self.allocator.alloc(u8, 65);
         const secret_key = try self.allocator.alloc(u8, 32);
 
-        // Serialize public key (uncompressed format: 0x04 || x || y)
         const public_point = key_pair.public_key.toUncompressedSec1();
         @memcpy(public_key, &public_point);
 
-        // Serialize secret key
         const secret_bytes = key_pair.secret_key.toBytes();
         @memcpy(secret_key, &secret_bytes);
 
@@ -106,7 +101,6 @@ pub const CryptoCore = struct {
         };
     }
 
-    /// Sign a message with the given secret key
     pub fn sign(self: *CryptoCore, algorithm: Algorithm, secret_key: []const u8, message: []const u8) !Signature {
         return switch (algorithm) {
             .ed25519 => try self.signEd25519(secret_key, message),
@@ -124,7 +118,6 @@ pub const CryptoCore = struct {
         var key_pair: Ed25519.KeyPair = undefined;
         @memcpy(&key_pair.secret_key.bytes, secret_key);
 
-        // Derive public key from secret key
         key_pair.public_key = try Ed25519.publicKeyFromSecretKey(key_pair.secret_key);
 
         const sig = try Ed25519.sign(message, key_pair, null);
@@ -164,7 +157,6 @@ pub const CryptoCore = struct {
         };
     }
 
-    /// Verify a signature
     pub fn verify(self: *CryptoCore, algorithm: Algorithm, public_key: []const u8, message: []const u8, signature: []const u8) !bool {
         _ = self;
         return switch (algorithm) {
